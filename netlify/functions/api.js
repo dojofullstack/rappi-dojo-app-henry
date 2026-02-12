@@ -83,7 +83,8 @@ app.post('/api/pedidos', async (req, res) => {
     res.status(201).json({ 
       status: true, 
       pedidoId: pedidoId,
-      mensaje: 'Pedido creado exitosamente'
+      mensaje: 'Pedido creado exitosamente',
+      linkpayment: `https://rappi-dojo-app.netlify.app/pedido-confirmado/${pedidoId}`
     });
 
   } catch (error) {

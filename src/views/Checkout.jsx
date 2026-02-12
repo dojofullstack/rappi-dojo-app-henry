@@ -121,7 +121,7 @@ const Checkout = () => {
                 useRappi.getState().eliminarProductosCarrito();
 
                 // Redirigir a la página principal o de confirmación
-                navigate('/');
+                navigate('/pedido-confirmado');
             } else {
                 alert("Error al procesar el pedido. Por favor intenta de nuevo.");
             }
