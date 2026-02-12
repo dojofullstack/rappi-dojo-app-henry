@@ -98,64 +98,64 @@ app.post('/api/pedidos', async (req, res) => {
 });
 
 // Endpoint opcional para listar todos los pedidos (debe ir ANTES del endpoint con :id)
-app.get('/api/pedidos', async (req, res) => {
-  try {
-    // Obtener todos los pedidos con sus items usando Drizzle ORM
-    const todosPedidos = await db.query.pedidos.findMany({
-      with: {
-        items: true,
-      },
-      orderBy: [desc(pedidos.createdAt)],
-    });
+// app.get('/api/pedidos', async (req, res) => {
+//   try {
+//     // Obtener todos los pedidos con sus items usando Drizzle ORM
+//     const todosPedidos = await db.query.pedidos.findMany({
+//       with: {
+//         items: true,
+//       },
+//       orderBy: [desc(pedidos.createdAt)],
+//     });
 
-    res.json({ 
-      status: true, 
-      pedidos: todosPedidos 
-    });
+//     res.json({ 
+//       status: true, 
+//       pedidos: todosPedidos 
+//     });
 
-  } catch (error) {
-    console.error('Error al listar pedidos:', error);
-    res.status(500).json({ 
-      status: false, 
-      error: error.message 
-    });
-  }
-});
+//   } catch (error) {
+//     console.error('Error al listar pedidos:', error);
+//     res.status(500).json({ 
+//       status: false, 
+//       error: error.message 
+//     });
+//   }
+// });
 
 // Endpoint opcional para obtener un pedido por ID (debe ir DESPUÉS del endpoint general)
-app.get('/api/pedidos/:id', async (req, res) => {
-  try {
-    const { id } = req.params;
-    const pedidoId = parseInt(id);
+// app.get('/api/pedidos/:id', async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const pedidoId = parseInt(id);
     
-    // Buscar el pedido con sus items usando Drizzle ORM
-    const pedido = await db.query.pedidos.findFirst({
-      where: eq(pedidos.id, pedidoId),
-      with: {
-        items: true,
-      },
-    });
+//     // Buscar el pedido con sus items usando Drizzle ORM
+//     const pedido = await db.query.pedidos.findFirst({
+//       where: eq(pedidos.id, pedidoId),
+//       with: {
+//         items: true,
+//       },
+//     });
     
-    if (!pedido) {
-      return res.status(404).json({ 
-        status: false, 
-        error: 'Pedido no encontrado' 
-      });
-    }
+//     if (!pedido) {
+//       return res.status(404).json({ 
+//         status: false, 
+//         error: 'Pedido no encontrado' 
+//       });
+//     }
     
-    res.json({ 
-      status: true, 
-      pedido: pedido
-    });
+//     res.json({ 
+//       status: true, 
+//       pedido: pedido
+//     });
 
-  } catch (error) {
-    console.error('Error al obtener pedido:', error);
-    res.status(500).json({ 
-      status: false, 
-      error: error.message 
-    });
-  }
-});
+//   } catch (error) {
+//     console.error('Error al obtener pedido:', error);
+//     res.status(500).json({ 
+//       status: false, 
+//       error: error.message 
+//     });
+//   }
+// });
 
 // Manejar rutas no encontradas
 app.use((req, res) => {
