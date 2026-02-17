@@ -46,7 +46,7 @@ const Checkout = () => {
         script.async = true;
         script.onload = () => {
             // Inicializar Stripe con tu clave pública
-            stripeRef.current = window.Stripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
+            stripeRef.current = window.Stripe("pk_test_51SO7H18WKHDD9kY2gU0RMVAeTbQab1DhnR4e7sTGhcVLBCe6JE4ZdTTyhao5ZdWNZWM6OXusqCIJEA0nF8cLNYqS00dhQXpVmj");
             
             // Crear elementos de Stripe
             const elements = stripeRef.current.elements();
