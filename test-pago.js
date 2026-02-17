@@ -12,7 +12,7 @@ async function testProcesarPago() {
     console.log('🧪 Iniciando prueba de procesamiento de pago...\n');
 
     // ID del payment method que obtuviste en el test.html
-    const paymentMethodId = "pm_1T1dpZ8WKHDD9kY29wxbeXfg"; // Reemplaza con tu PM real
+    const paymentMethodId = ""; // Reemplaza con tu PM real
     const amount = 100.00; // Monto en dólares
     const currency = 'usd';
     const description = 'zapatilla nike';
