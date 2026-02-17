@@ -1,8 +1,12 @@
 import express from 'express';
 import serverless from 'serverless-http';
+import Stripe from 'stripe';
 import { db } from '../../src/db/index.js';
 import { pedidos, pedidoItems } from '../../src/db/schema.js';
 import { eq, desc } from 'drizzle-orm';
+
+// Inicializar Stripe
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const app = express();
 app.use(express.json());
@@ -21,7 +25,8 @@ app.post('/api/pedidos', async (req, res) => {
       costoEnvio, 
       impuesto, 
       total, 
-      carrito 
+      carrito,
+      paymentMethodId
     } = req.body;
 
     // Validar que vengan los datos requeridos
@@ -40,13 +45,77 @@ app.post('/api/pedidos', async (req, res) => {
       });
     }
 
+    // Validar paymentMethodId si el método de pago es tarjeta
+    if (metodoPago === 'tarjeta' && !paymentMethodId) {
+      return res.status(400).json({ 
+        status: false, 
+        error: 'Se requiere paymentMethodId para pagos con tarjeta' 
+      });
+    }
+
     // Convertir valores numéricos a formato decimal correcto
     const formatearDecimal = (valor) => {
       const num = parseFloat(valor) || 0;
       return num.toFixed(2);
     };
 
-    // Paso 1: Insertar el pedido principal usando Drizzle ORM
+    let paymentIntentId = null;
+    let paymentStatus = 'pending';
+
+    // PASO 1: Procesar el pago con Stripe (si es pago con tarjeta)
+    if (metodoPago === 'tarjeta' && paymentMethodId) {
+      console.log('💳 Procesando pago con Stripe...');
+      console.log('  - Payment Method ID:', paymentMethodId);
+      console.log('  - Monto:', `$${total}`);
+
+      try {
+        // Crear el PaymentIntent
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: Math.round(parseFloat(total) * 100), // Convertir a centavos
+          currency: 'usd',
+          payment_method: paymentMethodId,
+          confirm: true, // Confirmar automáticamente
+          description: `Pedido de ${datosCliente.nombre} - ${carrito.length} items`,
+          receipt_email: datosCliente.email,
+          metadata: {
+            cliente_nombre: datosCliente.nombre,
+            cliente_email: datosCliente.email,
+            numero_items: carrito.length.toString(),
+          },
+          automatic_payment_methods: {
+            enabled: true,
+            allow_redirects: 'never',
+          },
+        });
+
+        paymentIntentId = paymentIntent.id;
+        paymentStatus = paymentIntent.status;
+
+        console.log('✅ Pago procesado exitosamente');
+        console.log('  - PaymentIntent ID:', paymentIntentId);
+        console.log('  - Status:', paymentStatus);
+
+        // Si el pago no fue exitoso, retornar error
+        if (paymentStatus !== 'succeeded') {
+          return res.status(400).json({
+            status: false,
+            error: 'El pago no pudo ser procesado',
+            paymentStatus: paymentStatus,
+          });
+        }
+
+      } catch (stripeError) {
+        console.error('❌ Error procesando pago con Stripe:', stripeError.message);
+        return res.status(400).json({
+          status: false,
+          error: `Error al procesar el pago: ${stripeError.message}`,
+          stripeErrorType: stripeError.type,
+          stripeErrorCode: stripeError.code,
+        });
+      }
+    }
+
+    // PASO 2: Insertar el pedido principal usando Drizzle ORM
     const [nuevoPedido] = await db.insert(pedidos).values({
       nombre: datosCliente.nombre,
       email: datosCliente.email,
@@ -62,6 +131,8 @@ app.post('/api/pedidos', async (req, res) => {
       costoEnvio: formatearDecimal(costoEnvio),
       impuesto: formatearDecimal(impuesto),
       total: formatearDecimal(total),
+      paymentIntentId: paymentIntentId, // ID del pago de Stripe
+      paymentStatus: paymentStatus, // Estado del pago
     }).returning({ id: pedidos.id });
     
     const pedidoId = nuevoPedido.id;
@@ -84,6 +155,10 @@ app.post('/api/pedidos', async (req, res) => {
       status: true, 
       pedidoId: pedidoId,
       mensaje: 'Pedido creado exitosamente',
+      paymentIntent: paymentIntentId ? {
+        id: paymentIntentId,
+        status: paymentStatus,
+      } : null,
       linkpayment: `https://rappi-dojo-app.netlify.app/pedido-confirmado/${pedidoId}`
     });
 

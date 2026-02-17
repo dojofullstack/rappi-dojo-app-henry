@@ -21,6 +21,10 @@ export const pedidos = pgTable('pedidos', {
   metodoPago: text('metodo_pago').notNull(), // 'tarjeta' o 'paypal'
   metodoEnvio: text('metodo_envio').notNull(), // 'gratis' o 'express'
   
+  // Datos de pago con Stripe
+  paymentIntentId: text('payment_intent_id'), // ID del PaymentIntent de Stripe
+  paymentStatus: text('payment_status').default('pending'), // 'pending', 'succeeded', 'failed'
+  
   // Montos
   subtotal: decimal('subtotal', { precision: 10, scale: 2 }).notNull(),
   costoEnvio: decimal('costo_envio', { precision: 10, scale: 2 }).notNull(),

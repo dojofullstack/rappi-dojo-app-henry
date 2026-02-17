@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Procesamiento de Pago - Stripe</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+
+      .payment-container {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        padding: 40px;
+        max-width: 480px;
+        width: 100%;
+      }
+
+      h1 {
+        color: #1a1a1a;
+        font-size: 28px;
+        margin-bottom: 8px;
+        font-weight: 600;
+      }
+
+      .subtitle {
+        color: #6b7280;
+        font-size: 14px;
+        margin-bottom: 32px;
+      }
+
+      .form-group {
+        margin-bottom: 24px;
+      }
+
+      label {
+        display: block;
+        color: #374151;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 8px;
+      }
+
+      input[type="text"],
+      input[type="email"] {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        font-size: 16px;
+        transition: all 0.2s;
+        font-family: inherit;
+      }
+
+      input[type="text"]:focus,
+      input[type="email"]:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      #card-element {
+        padding: 12px 16px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        background: white;
+        transition: all 0.2s;
+      }
+
+      #card-element:focus,
+      #card-element.StripeElement--focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      #card-element.StripeElement--invalid {
+        border-color: #ef4444;
+      }
+
+      #card-errors {
+        color: #ef4444;
+        font-size: 13px;
+        margin-top: 8px;
+        min-height: 20px;
+      }
+
+      .amount-display {
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .amount-label {
+        color: #6b7280;
+        font-size: 14px;
+      }
+
+      .amount-value {
+        color: #1a1a1a;
+        font-size: 24px;
+        font-weight: 700;
+      }
+
+      #btnPagar {
+        width: 100%;
+        padding: 14px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+      }
+
+      #btnPagar:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+      }
+
+      #btnPagar:active:not(:disabled) {
+        transform: translateY(0);
+      }
+
+      #btnPagar:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .secure-badge {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top: 20px;
+        color: #9ca3af;
+        font-size: 12px;
+      }
+
+      .secure-badge::before {
+        content: "🔒";
+        margin-right: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="payment-container">
+      <h1>Procesamiento de Pago</h1>
+      <p class="subtitle">Completa la información para procesar tu pago de forma segura</p>
+
+      <div class="amount-display">
+        <span class="amount-label">Total a pagar</span>
+        <span class="amount-value">$50.00</span>
+      </div>
+
+      <form id="payment-form">
+        <div class="form-group">
+          <label for="email">Correo Electrónico</label>
+          <input type="email" id="email" placeholder="tu@email.com" required />
+        </div>
+
+        <div class="form-group">
+          <label for="cardholderName">Nombre del Titular</label>
+          <input type="text" id="cardholderName" placeholder="Nombre completo" required />
+        </div>
+
+        <div class="form-group">
+          <label for="card-element">Información de la Tarjeta</label>
+          <div id="card-element"></div>
+          <div id="card-errors"></div>
+        </div>
+
+        <button type="submit" id="btnPagar">Procesar Pago</button>
+      </form>
+
+      <div class="secure-badge">Pago seguro procesado por Stripe</div>
+    </div>
+
+    <script>
+      const stripe = Stripe('pk_test_51SO7H18WKHDD9kY2gU0RMVAeTbQab1DhnR4e7sTGhcVLBCe6JE4ZdTTyhao5ZdWNZWM6OXusqCIJEA0nF8cLNYqS00dhQXpVmj');
+    
+      
+
+// Inicialización
+const elements = stripe.elements();
+
+
+
+const style = {
+  base: {
+    color: '#32325d',
+    fontFamily: '"Helvetica Neue", Helvetica, sans-serif',
+    fontSmoothing: 'antialiased',
+    fontSize: '16px',
+    '::placeholder': {
+      color: '#aab7c4'
+    }
+  },
+  invalid: {
+    color: '#fa755a',
+    iconColor: '#fa755a'
+  }
+};
+
+const card = elements.create('card', { style: style });
+      card.mount('#card-element');
+
+
+
+      // Procesar pago (envuelto en función async)
+      async function procesarPago() {
+        const boton = document.getElementById('btnPagar');
+        boton.disabled = true;
+        boton.textContent = 'Procesando...';
+
+        try {
+          // Crear el payment method
+          const { paymentMethod, error } = await stripe.createPaymentMethod({
+            type: 'card',
+            card: cardElement,
+          });
+
+          if (error) {
+            console.error('Error creando payment method:', error);
+            alert('Error: ' + error.message);
+            return;
+          }
+
+          console.log('PaymentMethod creado:', paymentMethod);
+
+          // Enviar al backend para procesar el pago
+        //   const response = await fetch('/.netlify/functions/procesar-pago', {
+        //     method: 'POST',
+        //     headers: {
+        //       'Content-Type': 'application/json',
+        //     },
+        //     body: JSON.stringify({
+        //       paymentMethodId: paymentMethod.id,
+        //       amount: 50.00, // Monto en dólares
+        //       currency: 'usd',
+        //       description: 'Pago de prueba'
+        //     }),
+        //   });
+
+        //   const resultado = await response.json();
+
+        //   if (resultado.success) {
+        //     console.log('Pago exitoso:', resultado.paymentIntent);
+        //     alert('¡Pago procesado exitosamente! ID: ' + resultado.paymentIntent.id);
+        //   } else {
+        //     console.error('Error procesando pago:', resultado);
+        //     alert('Error: ' + resultado.error);
+        //   }
+
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error procesando el pago: ' + error.message);
+        } finally {
+          boton.disabled = false;
+          boton.textContent = 'Procesar Pago';
+        }
+      }
+
+      // Agregar evento al botón
+      document.getElementById('btnPagar').addEventListener('click', procesarPago);
+    </script>
+  </body>
+</html>
