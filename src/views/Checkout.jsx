@@ -7,6 +7,7 @@ import axios from "axios";
 import "../css/ResumenCart.css";
 import "../css/Checkout.css";
 
+
 const Checkout = () => {
 
     // const cantidades  = null;
@@ -45,7 +46,7 @@ const Checkout = () => {
         script.async = true;
         script.onload = () => {
             // Inicializar Stripe con tu clave pública
-            stripeRef.current = window.Stripe(process.env.REACT_APP_STRIPE_PUBLIC_KEY);
+            stripeRef.current = window.Stripe(import.meta.env.VITE_STRIPE_PUBLIC_KEY);
             
             // Crear elementos de Stripe
             const elements = stripeRef.current.elements();
