@@ -22,7 +22,7 @@ export const pedidos = pgTable('pedidos', {
   metodoEnvio: text('metodo_envio').notNull(), // 'gratis' o 'express'
   
   // Datos de pago con Stripe
-  paymentIntentId: text('payment_intent_id'), // ID del PaymentIntent de Stripe
+  paymentIntentId: text('payment_intent_id').default(""), // ID del PaymentIntent de Stripe
   paymentStatus: text('payment_status').default('pending'), // 'pending', 'succeeded', 'failed'
   
   // Montos

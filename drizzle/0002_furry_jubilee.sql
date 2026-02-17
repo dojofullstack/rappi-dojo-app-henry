@@ -1,0 +1,1 @@
+ALTER TABLE "pedidos" ALTER COLUMN "payment_intent_id" SET DEFAULT '';
