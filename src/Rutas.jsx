@@ -4,6 +4,7 @@ import RestauranteMarcas from "./views/RestauranteMarcas";
 import MenuView from "./views/MenuView";
 import ResumenCart from "./views/ResumenCart";
 import Checkout from "./views/Checkout";
+import Login from "./views/Login";
 
 
 
@@ -16,6 +17,7 @@ const Rutas = () => {
                 {/* Aquí irán las rutas y componentes de la aplicación */}
                 <Routes>
                     <Route path="/" element={<RestaurantesView />} />
+                    <Route path="/login" element={<Login />} />
                     <Route path="/restaurantes" element={<RestauranteMarcas />} />
                     <Route path="/menu/:marca" element={<MenuView />} />
                     <Route path="/categorias" element={<RestaurantesView />} />

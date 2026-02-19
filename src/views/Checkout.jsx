@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import "../css/ResumenCart.css";
 import "../css/Checkout.css";
+import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 
 const Checkout = () => {
@@ -457,6 +458,37 @@ const Checkout = () => {
                                             <span style={{ marginRight: '6px' }}>🔒</span>
                                             Pago seguro procesado por Stripe
                                         </div>
+                                    </div>
+                                )}
+
+
+                                {metodoPago === "paypal" && (
+                                    <div className="paypal-section">
+                                        <h4>Pagar con PayPal</h4>
+                                        <PayPalScriptProvider options={{ "client-id": "test", "currency": "MXN" }}>
+                                            <PayPalButtons style={{ layout: "horizontal" }} 
+                                                createOrder={(data, actions) => {
+                                                    return actions.order.create({
+                                                        purchase_units: [{
+                                                            amount: {
+                                                                value: total.toFixed(2),
+                                                                currency_code: "MXN"
+                                                            }
+                                                        }]
+                                                    });
+                                                }} 
+                                                onApprove={(data, actions) => {
+                                                    return actions.order.capture().then((details) => {
+                                                        alert(`Pago aprobado por ${details.payer.name.given_name}!`);
+                                                        // Aquí podrías enviar los detalles del pago al backend para completar el proceso
+                                                    });
+                                                }} 
+                                                onError={(err) => {
+                                                    console.error('Error en PayPal:', err);
+                                                    alert('Ocurrió un error al procesar el pago con PayPal. Por favor intenta de nuevo.');
+                                                }}
+                                            />
+                                        </PayPalScriptProvider>
                                     </div>
                                 )}
 

@@ -12,6 +12,8 @@ const agregarProducto = (set, get, nombreProducto) => {
 
 const useRappi = create( (set, get) => {
     return {
+        loginActivo: false,
+        usuario: null,
         carrito: [],
         profile: null,
         categorias: [],
@@ -20,6 +22,9 @@ const useRappi = create( (set, get) => {
         profileUpdated: (nuevoProfile) => set({profile: nuevoProfile} ),
         setCategorias: (nuevasCategorias) => set({categorias: nuevasCategorias} ),
         setMarcas: (nuevasMarcas) => set({marcas: nuevasMarcas} ),
+        setLoginActivo: (estado) => set({loginActivo: estado}),
+        setUsuario: (nuevoUsuario) => set({usuario: nuevoUsuario}),
+        cerrarSesion: () => set({loginActivo: false, usuario: null}),
         eliminarProductosCarrito: () => set({carrito: []}),
         eliminarProductoByIdCart: (idProducto) => {
             const carritoActual = get().carrito;
