@@ -5,6 +5,7 @@ import MenuView from "./views/MenuView";
 import ResumenCart from "./views/ResumenCart";
 import Checkout from "./views/Checkout";
 import Login from "./views/Login";
+import Registro from "./views/Registro";
 
 
 
@@ -18,6 +19,7 @@ const Rutas = () => {
                 <Routes>
                     <Route path="/" element={<RestaurantesView />} />
                     <Route path="/login" element={<Login />} />
+                    <Route path="/registro" element={<Registro />} />
                     <Route path="/restaurantes" element={<RestauranteMarcas />} />
                     <Route path="/menu/:marca" element={<MenuView />} />
                     <Route path="/categorias" element={<RestaurantesView />} />

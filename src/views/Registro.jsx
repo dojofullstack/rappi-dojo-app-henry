@@ -5,43 +5,55 @@ import 'react-toastify/dist/ReactToastify.css';
 import { useNavigate } from 'react-router-dom';
 import useRappi from '../store';
 
-const Login = () => {
+const Registro = () => {
   const navigate = useNavigate();
   const { setLoginActivo, setUsuario } = useRappi();
   const [username, setUsername] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [password2, setPassword2] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (password !== password2) {
+      toast.error('Las contraseñas no coinciden', {
+        position: 'top-right',
+        autoClose: 3000,
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const response = await axios.post(
-        'https://api2.dojofullstack.com/api/v1/dummyapi/auth/login/',
+        'https://api2.dojofullstack.com/api/v1/dummyapi/auth/register/',
         {
           username,
+          first_name: firstName,
+          email,
           password,
+          password2,
         },
         {
           headers: {
             'Content-Type': 'application/json',
-          }
+          },
         }
       );
 
-      // Login exitoso
-      console.log('Login exitoso:', response.data);
+      console.log('✅ Registro exitoso:', response.data);
 
-      // validar el objetio contiene acccesToken y refreshToken
       if (!response.data.access || !response.data.refresh) {
         console.error('❌ Error: Faltan tokens en la respuesta');
         setLoading(false);
         return;
       }
-      
-      // Mostrar notificación de éxito
-      toast.success(`¡Bienvenido ${response.data.user.firstName} ${response.data.user.lastName}!`, {
+
+      toast.success(`¡Cuenta creada! Bienvenido ${response.data.user.firstName}!`, {
         position: 'top-right',
         autoClose: 3000,
         hideProgressBar: false,
@@ -50,42 +62,36 @@ const Login = () => {
         draggable: true,
       });
 
-      // Guardar datos en localStorage (opcional)
-      console.log('Guardando tokens en localStorage:', {
-        accessToken: response.data.access,
-        refreshToken: response.data.refresh,
-        user: response.data.user,
-      });
-
       localStorage.setItem('accessToken', response.data.access);
       localStorage.setItem('refreshToken', response.data.refresh);
       localStorage.setItem('user', JSON.stringify(response.data.user));
 
-      // Actualizar estados de Zustand
       setLoginActivo(true);
       setUsuario(response.data.user);
 
-      // navegar a otra página después de login exitoso
       setTimeout(() => {
-          navigate("/");
+        navigate('/');
       }, 3000);
 
-
     } catch (error) {
-      console.error('Error en login:', error);
-      
-      // Mostrar notificación de error
-      toast.error(
-        error.response?.data?.message || 'Usuario o contraseña incorrectos',
-        {
-          position: 'top-right',
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        }
-      );
+      console.error('❌ Error en registro:', error);
+
+      const errData = error.response?.data;
+      const mensaje =
+        errData?.username?.[0] ||
+        errData?.email?.[0] ||
+        errData?.password?.[0] ||
+        errData?.message ||
+        'Error al crear la cuenta';
+
+      toast.error(mensaje, {
+        position: 'top-right',
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setLoading(false);
     }
@@ -97,16 +103,11 @@ const Login = () => {
       <div className="hero bg-base-200 min-h-screen">
         <div className="hero-content flex-col lg:flex-row-reverse">
           <div className="text-center lg:text-left">
-            <h1 className="text-5xl font-bold">Login now!</h1>
+            <h1 className="text-5xl font-bold">¡Regístrate!</h1>
             <p className="py-6">
-              Provident cupiditate voluptatem et in. Quaerat fugiat ut assumenda
-              excepturi exercitationem quasi. In deleniti eaque aut repudiandae
-              et a id nisi.
+              Crea tu cuenta para disfrutar de todos los restaurantes y productos
+              disponibles en nuestra plataforma.
             </p>
-            <div className="mt-4 text-sm opacity-70">
-              <p>Usuario de prueba: <strong>henryMusk4</strong></p>
-              <p>Contraseña: <strong>12e456Hola</strong></p>
-            </div>
           </div>
           <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl">
             <form className="card-body" onSubmit={handleSubmit}>
@@ -120,25 +121,55 @@ const Login = () => {
                   onChange={(e) => setUsername(e.target.value)}
                   required
                 />
-                <label className="label">Password</label>
+                <label className="label">Nombre completo</label>
+                <input
+                  type="text"
+                  className="input"
+                  placeholder="Tu nombre"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                />
+                <label className="label">Email</label>
+                <input
+                  type="email"
+                  className="input"
+                  placeholder="correo@ejemplo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
+                <label className="label">Contraseña</label>
                 <input
                   type="password"
                   className="input"
-                  placeholder="Password"
+                  placeholder="Contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                 />
-                <div>
-                  <a className="link link-hover">¿Olvidaste tu contraseña?</a>
-                </div>
+                <label className="label">Confirmar contraseña</label>
+                <input
+                  type="password"
+                  className="input"
+                  placeholder="Repite la contraseña"
+                  value={password2}
+                  onChange={(e) => setPassword2(e.target.value)}
+                  required
+                />
                 <button
                   type="submit"
                   className="btn btn-neutral mt-4"
                   disabled={loading}
                 >
-                  {loading ? 'Iniciando sesión...' : 'Iniciar sesión'}
+                  {loading ? 'Creando cuenta...' : 'Crear cuenta'}
                 </button>
+                <p className="text-sm text-center mt-2">
+                  ¿Ya tienes cuenta?{' '}
+                  <a className="link link-primary" onClick={() => navigate('/login')}>
+                    Inicia sesión
+                  </a>
+                </p>
               </fieldset>
             </form>
           </div>
@@ -148,4 +179,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Registro;

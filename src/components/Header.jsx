@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import useRappi from "../store";
+import axios from "axios";
 
 
 const Header = () => {
@@ -26,19 +27,71 @@ const Header = () => {
       try {
         const accessToken = localStorage.getItem('accessToken');
         const refreshToken = localStorage.getItem('refreshToken');
-        // const userString = localStorage.getItem('user');
         
-        if (accessToken && refreshToken && userString) {
-          const userData = JSON.parse(userString);
-
+        if (accessToken && refreshToken) {
 
           // consultar api de usuario /api/user , si el api falla llamar a /api/refresh-token (si este tambien falla navegar login)
           
+
+          axios.get("https://api2.dojofullstack.com/api/v1/dummyapi/auth/me/", {
+            headers: {
+              "Authorization": `Bearer ${accessToken}`
+            }
+          }).then(response => {
+            console.log('✅ Sesión restaurada con accessToken:', response.data);
+            setLoginActivo(true);
+            setUsuario(response.data);
+          }).catch(error => {
+            console.warn('⚠️ accessToken inválido, intentando refreshToken...', error);
+
+            // Intentar refrescar el token  
+            axios.post("https://api2.dojofullstack.com/api/v1/dummyapi/auth/token/refresh/", {
+              refresh: refreshToken
+            }).then(refreshResponse => {
+              console.log('🔄 Token refrescado:', refreshResponse.data);
+              localStorage.setItem('accessToken', refreshResponse.data.access);
+
+                    axios.get("https://api2.dojofullstack.com/api/v1/dummyapi/auth/me/", {
+                      headers: {
+                      "Authorization": `Bearer ${refreshResponse.data.access}`
+                    }
+                  }).then(response => {
+                    console.log('✅ Sesión restaurada con accessToken:', response.data);
+                    setLoginActivo(true);
+                    setUsuario(response.data);
+                  }).catch(error => {
+                    console.error('❌ Error al obtener datos del usuario con accessToken refrescado:', error);
+                    // Limpiar localStorage y navegar a login
+                    localStorage.removeItem('accessToken');
+                    localStorage.removeItem('refreshToken');
+                    navigate('/login');
+                  });
+
+
+              // window.location.reload(); // recargar la página para reintentar la consulta con el nuevo token
+
+
+              // setLoginActivo(true);
+              // setUsuario(refreshResponse.data.user);
+
+
+            }).catch(refreshError => {
+              console.error('❌ Error al refrescar token:', refreshError);
+              // Limpiar localStorage y navegar a login
+              localStorage.removeItem('accessToken');
+              localStorage.removeItem('refreshToken');
+              navigate('/login');
+            });
+
+
+          });
+
+
           // Actualizar estados de Zustand
-          setLoginActivo(true);
-          setUsuario(userData);
+          // setLoginActivo(true);
+          // setUsuario(userData);
           
-          console.log('✅ Sesión restaurada:', userData);
+          // console.log('✅ Sesión restaurada:');
         } else {
           console.log('⚠️ No hay sesión guardada');
         }
@@ -47,7 +100,6 @@ const Header = () => {
         // Limpiar localStorage si hay datos corruptos
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
-        localStorage.removeItem('user');
       }
     };
     
