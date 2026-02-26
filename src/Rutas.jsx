@@ -6,6 +6,7 @@ import ResumenCart from "./views/ResumenCart";
 import Checkout from "./views/Checkout";
 import Login from "./views/Login";
 import Registro from "./views/Registro";
+import PedidoCompletedView from "./views/PedidoCompletedView";
 
 
 
@@ -28,6 +29,7 @@ const Rutas = () => {
                     <Route path="/login" element={<RestaurantesView />} />
                     <Route path="/registro" element={<RestaurantesView />} />
                     <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/pedido-confirmado" element={<PedidoCompletedView />} />
                 </Routes>
             </BrowserRouter>
 
